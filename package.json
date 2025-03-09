@@ -1,0 +1,38 @@
+{
+  "name": "react-apple-mapkit",
+  "version": "1.0.0",
+  "description": "A React wrapper for Apple MapKit JS.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react",
+    "apple",
+    "mapkit",
+    "maps",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/react-apple-mapkit.git"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "typescript": "^5.8.2"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module"
+}
