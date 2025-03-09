@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext } from "react";
 import { MarkerProps } from "../types/marker-types";
-import { MapContext } from "../contexts/MapContext";  // Access the map instance from context
+import  MapContext  from "../contexts/MapContext";  // Access the map instance from context
 
 const Marker: React.FC<MarkerProps> = ({
   latitude,

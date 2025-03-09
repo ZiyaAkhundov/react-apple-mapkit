@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext } from "react";
 import { Coordinate, PolygonProps } from "../types/polygon-types";
-import { MapContext } from "../contexts/MapContext";
+import  MapContext  from "../contexts/MapContext";
 
 const Polygon: React.FC<PolygonProps> = ({
   points,

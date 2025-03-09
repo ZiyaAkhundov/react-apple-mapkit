@@ -1,7 +1,7 @@
 import  React from "react";
 import { useEffect, useRef, useContext } from "react";
 import { PolylineProps } from "../types/polyline-types";
-import { MapContext } from "../contexts/MapContext";
+import  MapContext from "../contexts/MapContext";
 
 const Polyline: React.FC<PolylineProps> = ({
   points,

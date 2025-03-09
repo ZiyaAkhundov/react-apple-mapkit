@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { 
   MapProps, 
 } from "../types/map-types";
-import { MapContext } from "../contexts/MapContext";
+import MapContext  from "../contexts/MapContext";
 
 const Map: React.FC<MapProps> = ({
   initialRegion,

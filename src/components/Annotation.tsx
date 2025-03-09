@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useContext } from "react";
 import { AnnotationProps } from "../types/annotation-types";
-import { MapContext } from "../contexts/MapContext";  // Assuming a MapContext is used for map reference
+import MapContext from "../contexts/MapContext";
 
 const Annotation: React.FC<AnnotationProps> = ({
   latitude,
