@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -20,8 +21,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/react-apple-mapkit.git"
+    "url": "https://github.com/ZiyaAkhundov/react-apple-mapkit.git"
   },
+  "bugs": {
+    "url": "https://github.com/ZiyaAkhundov/react-apple-mapkit/issues"
+  },
+  "homepage": "https://github.com/ZiyaAkhundov/react-apple-mapkit#readme",
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

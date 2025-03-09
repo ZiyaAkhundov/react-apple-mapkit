@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
-    "jsx": "react",
-    "strict": true,
-    "esModuleInterop": true,
+    "module": "ESNext",
+    "lib": ["dom", "ESNext"],
     "declaration": true,
-    "outDir": "./dist",
+    "declarationDir": "dist",
+    "outDir": "dist",
+    "jsx": "react-jsx",
     "moduleResolution": "node",
-    "typeRoots": ["src/types", "node_modules/@types"]
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"]
 }
