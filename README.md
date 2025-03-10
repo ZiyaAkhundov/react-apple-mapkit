@@ -6,3 +6,6 @@ A React wrapper for Apple MapKit JS.
 
 ```bash
 npm install react-apple-mapkit
+```
+
+<p style="color: red; font-weight: bold;">⚠️ In progress</p>

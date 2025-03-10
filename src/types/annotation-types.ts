@@ -1,30 +1,33 @@
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
+import { Coordinate } from './map-types';
 
-// Coordinate type reused from map-types.ts if applicable
-export interface Coordinate {
+export default interface AnnotationProps {
   latitude: number;
   longitude: number;
-}
-
-// Annotation props type
-export interface AnnotationProps {
-  latitude: number;                      // Required
-  longitude: number;                     // Required
-  size?: { width: number; height: number };
   title?: string;
   subtitle?: string;
-  accessibilityLabel?: string;
+  accessibilityLabel?: string | null;
+  size?: { width: number; height: number };
+  paddingTop?: number;
+  paddingRight?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
   anchorOffsetX?: number;
   anchorOffsetY?: number;
   selected?: boolean;
+  onSelect?: () => void;
+  onDeselect?: () => void;
+  onDragStart?: () => void;
+  onDragEnd?: (newPosition: Coordinate) => void;
+  onDragging?: (newPosition: Coordinate) => void;
   animates?: boolean;
   appearanceAnimation?: string;
   draggable?: boolean;
   enabled?: boolean;
   visible?: boolean;
-  clusteringIdentifier?: string;
-  collisionMode?: "Rectangle" | "Circle" | "None";
-  displayPriority?: number | "low" | "high" | "required";
+  children?: React.ReactNode;
+  clusteringIdentifier?: string | null;
+  collisionMode?: 'Rectangle' | 'Circle' | null;
   calloutOffsetX?: number;
   calloutOffsetY?: number;
   calloutEnabled?: boolean;
@@ -32,12 +35,4 @@ export interface AnnotationProps {
   calloutRightAccessory?: ReactNode;
   calloutContent?: ReactNode;
   calloutElement?: ReactNode;
-  children?: ReactNode;
-
-  // Event handlers
-  onSelect?: () => void;
-  onDeselect?: () => void;
-  onDragStart?: () => void;
-  onDragEnd?: (newPosition: Coordinate) => void;
-  onDragging?: (newPosition: Coordinate) => void;
 }

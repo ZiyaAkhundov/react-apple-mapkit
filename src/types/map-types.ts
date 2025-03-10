@@ -1,51 +1,45 @@
+import { Distances, FeatureVisibility, MapType, PointOfInterestCategory } from "../enums";
+import { MapInteractionEvent, UserLocationChangeEvent, UserLocationErrorEvent } from "./event-types";
+
 export interface Coordinate {
   latitude: number;
   longitude: number;
 }
 
 export interface CoordinateRegion {
-  center: Coordinate;
-  span: {
-    latitudeDelta: number;
-    longitudeDelta: number;
-  };
+  centerLatitude: number;
+  centerLongitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
 }
 
-export interface MapInteractionEvent {
-  latitude: number;
-  longitude: number;
-  x: number;
-  y: number;
-}
 
-export interface UserLocationErrorEvent {
-  code: number;
-  message: string;
-}
-
-export type MapType = "standard" | "hybrid" | "satellite";
-export type ColorScheme = "dark" | "light" | "auto";
-export type Distances = "metric" | "imperial";
-
-export interface MapProps {
-  initialRegion: CoordinateRegion;  // Required initial region
-  zoomLevel?: number;               // Optional zoom level
+export default interface MapProps {
+  load?: (token: string) => Promise<void>;
+  token: string;
   mapType?: MapType;
-  colorScheme?: ColorScheme;
   distances?: Distances;
-
   isRotationEnabled?: boolean;
   isScrollEnabled?: boolean;
   isZoomEnabled?: boolean;
-
-  showsCompass?: boolean;
-  showsScale?: boolean;
+  showsCompass?: FeatureVisibility;
+  showsScale?: FeatureVisibility;
   showsMapTypeControl?: boolean;
   showsZoomControl?: boolean;
   showsUserLocationControl?: boolean;
+  showsPointsOfInterest?: boolean;
+  showsUserLocation?: boolean;
   tracksUserLocation?: boolean;
-  showUserLocation?: boolean;
-
+  includedPOICategories?: PointOfInterestCategory[];
+  excludedPOICategories?: PointOfInterestCategory[];
+  paddingTop?: number;
+  paddingRight?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  initialRegion?: CoordinateRegion;
+  cameraBoundary?: CoordinateRegion;
+  minCameraDistance?: number;
+  maxCameraDistance?: number;
   onLoad?: () => void;
   onRegionChangeStart?: (currentValue: CoordinateRegion) => void;
   onRegionChangeEnd?: (newValue: CoordinateRegion) => void;
@@ -57,8 +51,6 @@ export interface MapProps {
   onMouseMove?: (event: MapInteractionEvent) => void;
   onMouseDown?: (event: MapInteractionEvent) => void;
   onMouseUp?: (event: MapInteractionEvent) => void;
-  onUserLocationChange?: (location: Coordinate) => void;
+  onUserLocationChange?: (event: UserLocationChangeEvent) => void;
   onUserLocationError?: (event: UserLocationErrorEvent) => void;
-
-  children?: React.ReactNode;
 }

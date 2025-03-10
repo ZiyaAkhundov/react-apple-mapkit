@@ -1,0 +1,61 @@
+export enum MapType {
+  Standard,
+  MutedStandard,
+  Hybrid,
+  Satellite,
+}
+
+export enum Distances {
+  Adaptive,
+  Metric,
+  Imperial,
+}
+
+export enum PointOfInterestCategory {
+  Airport,
+  AmusementPark,
+  Aquarium,
+  ATM,
+  Bakery,
+  Bank,
+  Beach,
+  Brewery,
+  Cafe,
+  Campground,
+  CarRental,
+  EVCharger,
+  FireStation,
+  FitnessCenter,
+  FoodMarket,
+  GasStation,
+  Hospital,
+  Hotel,
+  Laundry,
+  Library,
+  Marina,
+  MovieTheater,
+  Museum,
+  NationalPark,
+  Nightlife,
+  Park,
+  Parking,
+  Pharmacy,
+  Police,
+  PostOffice,
+  PublicTransport,
+  Restaurant,
+  Restroom,
+  School,
+  Stadium,
+  Store,
+  Theater,
+  University,
+  Winery,
+  Zoo,
+}
+
+export enum FeatureVisibility {
+    Hidden = "hidden",
+    Visible = "visible",
+    Adaptive = "adaptive",
+  }

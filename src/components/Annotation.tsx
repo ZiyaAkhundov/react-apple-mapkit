@@ -1,127 +1,150 @@
-import React, { useEffect, useRef, useContext } from "react";
-import { AnnotationProps } from "../types/annotation-types";
-import MapContext from "../contexts/MapContext";
+import React, {
+  useEffect,
+  useRef,
+  useContext,
+  useMemo,
+  useState,
+  useLayoutEffect,
+} from "react";
+import MapContext from "../context/MapContext";
+import AnnotationProps from "../types/annotation-types";
+import forwardMapkitEvent from "../utils/event";
+import { createPortal } from "react-dom";
+import CalloutContainer from "./CalloutContainer";
 
 const Annotation: React.FC<AnnotationProps> = ({
   latitude,
   longitude,
-  size,
-  title,
-  subtitle,
-  accessibilityLabel,
-  anchorOffsetX = 0,
-  anchorOffsetY = 0,
+  size = undefined,
+  title = "",
+  subtitle = "",
+  accessibilityLabel = null,
+
   selected = false,
-  animates = false,
-  appearanceAnimation,
+  animates = true,
   draggable = false,
   enabled = true,
   visible = true,
-  clusteringIdentifier,
-  collisionMode = "Rectangle",
-  displayPriority = 500,
+
+  clusteringIdentifier = null,
+  collisionMode = undefined,
+
+  calloutElement = undefined,
+  calloutContent = undefined,
+  calloutLeftAccessory = undefined,
+  calloutRightAccessory = undefined,
+
+  appearanceAnimation = "",
   calloutOffsetX = 0,
   calloutOffsetY = 0,
   calloutEnabled = true,
-  calloutLeftAccessory,
-  calloutRightAccessory,
-  calloutContent,
-  calloutElement,
   children,
 
+  paddingTop = 0,
+  paddingRight = 0,
+  paddingBottom = 0,
+  paddingLeft = 0,
+  anchorOffsetX = 0,
+  anchorOffsetY = 0,
+
   // Event handlers
-  onSelect,
-  onDeselect,
-  onDragStart,
-  onDragEnd,
-  onDragging,
+  onSelect = undefined,
+  onDeselect = undefined,
+  onDragStart = undefined,
+  onDragEnd = undefined,
+  onDragging = undefined,
 }) => {
-  const annotationRef = useRef<mapkit.Annotation | null>(null);
-  const map = useContext(MapContext);  // Get the map instance from context
+  const [annotation, setAnnotation] = useState<mapkit.Annotation | null>(null);
+  const contentEl = useMemo<HTMLDivElement>(
+    () => document.createElement("div"),
+    []
+  );
+  const map = useContext(MapContext);
 
   useEffect(() => {
-    if (!window.mapkit || !map) return;
+    if (!annotation) return;
+    annotation.padding = new mapkit.Padding(
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft
+    );
+  }, [annotation, paddingTop, paddingRight, paddingBottom, paddingLeft]);
 
-    const coordinate = new window.mapkit.Coordinate(latitude, longitude);
-    const options: mapkit.AnnotationConstructorOptions = {
-      title,
-      subtitle,
-      accessibilityLabel,
-      anchorOffset: new DOMPoint(anchorOffsetX, anchorOffsetY),
-      selected,
-      animates,
-      appearanceAnimation,
-      draggable,
-      enabled,
-      visible,
-      clusteringIdentifier,
-      collisionMode: collisionMode.toLowerCase() as any,
-      displayPriority: typeof displayPriority === "string" ? displayPriority : displayPriority,
-      calloutOffset: new DOMPoint(calloutOffsetX, calloutOffsetY),
-      calloutEnabled,
-      calloutLeftAccessory,
-      calloutRightAccessory,
-      calloutContent,
-      calloutElement,
-    };
+  // AnchorOffset
+  useEffect(() => {
+    if (!annotation) return;
+    annotation.anchorOffset = new DOMPoint(anchorOffsetX, anchorOffsetY);
+  }, [annotation, anchorOffsetX, anchorOffsetY]);
 
-    const annotation = new window.mapkit.Annotation(coordinate, options);
-    annotationRef.current = annotation;
+  // CalloutOffset
+  useEffect(() => {
+    if (!annotation) return;
+    annotation.calloutOffset = new DOMPoint(calloutOffsetX, calloutOffsetY);
+  }, [annotation, calloutOffsetX, calloutOffsetY]);
 
-    // Apply size if specified
-    if (size) {
-      const element = annotation.element as HTMLElement;
-      element.style.width = `${size.width}px`;
-      element.style.height = `${size.height}px`;
+  const calloutLeftAccessoryRef = useRef<HTMLDivElement>(null);
+  const calloutRightAccessoryRef = useRef<HTMLDivElement>(null);
+  const calloutContentRef = useRef<HTMLDivElement>(null);
+  const calloutElementRef = useRef<HTMLDivElement>(null);
+
+  // Callout
+  useLayoutEffect(() => {
+    if (!annotation) return;
+
+    const callOutObj: mapkit.AnnotationCalloutDelegate = {};
+    if (calloutElement && calloutElementRef.current !== null) {
+      callOutObj.calloutElementForAnnotation = () => calloutElementRef.current;
+    }
+    if (calloutLeftAccessory && calloutLeftAccessoryRef.current !== null) {
+      callOutObj.calloutLeftAccessoryForAnnotation = () =>
+        calloutLeftAccessoryRef.current;
+    }
+    if (calloutRightAccessory && calloutRightAccessoryRef.current !== null) {
+      callOutObj.calloutRightAccessoryForAnnotation = () =>
+        calloutRightAccessoryRef.current;
+    }
+    if (calloutContent && calloutContentRef.current !== null) {
+      callOutObj.calloutContentForAnnotation = () => calloutContentRef.current;
+    }
+    if (Object.keys(callOutObj).length > 0) {
+      annotation.callout = callOutObj;
+    } else {
+      delete annotation.callout;
     }
 
-    // Add annotation to map
-    map.addAnnotation(annotation);
-
-    // Event handlers with type assertion for Event
-    const handleSelect = () => onSelect?.();
-    const handleDeselect = () => onDeselect?.();
-    const handleDragStart = () => onDragStart?.();
-    const handleDragEnd = (event: Event) => {
-      const customEvent = event as mapkit.AnnotationEvent;
-      onDragEnd?.(customEvent.coordinate);
-    };
-    const handleDragging = (event: Event) => {
-      const customEvent = event as mapkit.AnnotationEvent;
-      onDragging?.(customEvent.coordinate);
-    };
-
-    annotation.addEventListener("select", handleSelect as EventListener);
-    annotation.addEventListener("deselect", handleDeselect as EventListener);
-    annotation.addEventListener("drag-start", handleDragStart as EventListener);
-    annotation.addEventListener("drag-end", handleDragEnd as EventListener);
-    annotation.addEventListener("dragging", handleDragging as EventListener);
-
     return () => {
-      if (annotationRef.current) {
-        // Remove event listeners
-        annotation.removeEventListener("select", handleSelect as EventListener);
-        annotation.removeEventListener("deselect", handleDeselect as EventListener);
-        annotation.removeEventListener("drag-start", handleDragStart as EventListener);
-        annotation.removeEventListener("drag-end", handleDragEnd as EventListener);
-        annotation.removeEventListener("dragging", handleDragging as EventListener);
-
-        // Remove annotation from map
-        map.removeAnnotation(annotationRef.current);
-
-        annotationRef.current = null;
-      }
+      delete annotation.callout;
     };
   }, [
-    map,
-    latitude,
-    longitude,
-    size,  // Added size as a dependency
+    annotation,
+    calloutElement,
+    calloutLeftAccessory,
+    calloutRightAccessory,
+    calloutContent,
+    calloutElementRef.current,
+    calloutLeftAccessoryRef.current,
+    calloutRightAccessoryRef.current,
+    calloutContentRef.current,
+  ]);
+
+  useEffect(() => {
+    if (!annotation) return;
+
+    if (collisionMode === "Circle") {
+      annotation.collisionMode = mapkit.Annotation.CollisionMode.Circle;
+    } else if (collisionMode === "Rectangle") {
+      annotation.collisionMode = mapkit.Annotation.CollisionMode.Rectangle;
+    } else {
+      delete annotation.collisionMode;
+    }
+  }, [annotation, collisionMode]);
+
+  const properties = {
     title,
     subtitle,
     accessibilityLabel,
-    anchorOffsetX,
-    anchorOffsetY,
+    size,
     selected,
     animates,
     appearanceAnimation,
@@ -129,23 +152,90 @@ const Annotation: React.FC<AnnotationProps> = ({
     enabled,
     visible,
     clusteringIdentifier,
-    collisionMode,
-    displayPriority,
-    calloutOffsetX,
-    calloutOffsetY,
     calloutEnabled,
-    calloutLeftAccessory,
-    calloutRightAccessory,
-    calloutContent,
-    calloutElement,
-    onSelect,
-    onDeselect,
-    onDragStart,
-    onDragEnd,
-    onDragging,
-  ]);
+  };
 
-  return <>{children}</>;
+  Object.entries(properties).forEach(([propertyName, prop]) => {
+    useEffect(() => {
+      if (!annotation) return;
+      if (prop === undefined) {
+        delete annotation[propertyName];
+        return;
+      }
+      annotation[propertyName] = prop;
+    }, [annotation, prop]);
+  });
+
+  const handlerWithoutParameters = () => {};
+
+  const events = [
+    { name: "select", handler: onSelect },
+    { name: "deselect", handler: onDeselect },
+    { name: "drag-start", handler: onDragStart },
+  ] as const;
+
+  events.forEach(({ name, handler }) => {
+    forwardMapkitEvent(annotation, name, handler, handlerWithoutParameters);
+  });
+
+  const dragEndParameters = () => ({
+    latitude: annotation!.coordinate.latitude,
+    longitude: annotation!.coordinate.longitude,
+  });
+
+  const draggingParameters = (e: { coordinate: mapkit.Coordinate }) => ({
+    latitude: e.coordinate.latitude,
+    longitude: e.coordinate.longitude,
+  });
+
+  forwardMapkitEvent(annotation, "drag-end", onDragEnd, dragEndParameters);
+  forwardMapkitEvent(annotation, "dragging", onDragging, draggingParameters);
+
+  useLayoutEffect(() => {
+    if (map === null) return undefined;
+
+    const a = new mapkit.Annotation(
+      new mapkit.Coordinate(latitude, longitude),
+      () => contentEl
+    );
+    map.addAnnotation(a);
+    setAnnotation(a);
+
+    return () => {
+      map.removeAnnotation(a);
+    };
+  }, [map, latitude, longitude]);
+
+  return (
+    <>
+      {createPortal(
+        <div style={{ display: "none" }}>
+          {calloutContent !== undefined && (
+            <CalloutContainer ref={calloutContentRef} type="content">
+              {calloutContent}
+            </CalloutContainer>
+          )}
+          {calloutLeftAccessory !== undefined && (
+            <CalloutContainer ref={calloutLeftAccessoryRef} type="left">
+              {calloutLeftAccessory}
+            </CalloutContainer>
+          )}
+          {calloutRightAccessory !== undefined && (
+            <CalloutContainer ref={calloutRightAccessoryRef} type="right">
+              {calloutRightAccessory}
+            </CalloutContainer>
+          )}
+          {calloutElement !== undefined && (
+            <CalloutContainer ref={calloutElementRef} type="container">
+              {calloutElement}
+            </CalloutContainer>
+          )}
+        </div>,
+        document.body
+      )}
+      {createPortal(children, contentEl)}
+    </>
+  );
 };
 
 export default Annotation;

@@ -1,267 +1,314 @@
-// Declare the mapkit namespace globally
 declare namespace mapkit {
-  // Map constructor and types
-  interface MapConstructor {
-    new (element: HTMLElement): Map;
-    MapTypes: {
-      STANDARD: string;
-      HYBRID: string;
-      SATELLITE: string;
-    };
-    ColorSchemes: {
-      DARK: string;
-      LIGHT: string;
-      AUTO: string;
-    };
-    Distances: {
-      METRIC: string;
-      IMPERIAL: string;
-    };
-  }
-
-  // Map instance methods and properties
-  interface Map {
-    mapType: string;
-    colorScheme: string;
-    distances: string;
-    showsUserLocation: boolean;
-    isRotationEnabled: boolean;
-    isScrollEnabled: boolean;
-    isZoomEnabled: boolean;
-
-    showsCompass: boolean;
-    showsScale: boolean;
-    showsMapTypeControl: boolean;
-    showsZoomControl: boolean;
-    showsUserLocationControl: boolean;
-    tracksUserLocation: boolean;
-
-    region: CoordinateRegion;
-
-    addAnnotation(annotation: Annotation): void;
-    removeAnnotation(annotation: Annotation): void;
-    addOverlay(overlay: Overlay): void;
-    removeOverlay(overlay: Overlay): void;
-
-    addEventListener(
-      event: string,
-      callback: EventListenerOrEventListenerObject | null,
-      options?: boolean | AddEventListenerOptions
-    ): void;
-    removeEventListener(
-      event: string,
-      callback: EventListenerOrEventListenerObject | null,
-      options?: boolean | EventListenerOptions
-    ): void;
-    destroy(): void;
-  }
-
-  // Coordinate definition
+  // Coordinate: Represents a point on the Earth's surface.
   interface Coordinate {
     latitude: number;
     longitude: number;
   }
 
-  const Coordinate: {
-    new (latitude: number, longitude: number): Coordinate;
-  };
-
-  // CoordinateSpan definition
+  // CoordinateSpan: Represents the amount of map to display in latitude and longitude degrees.
   interface CoordinateSpan {
     latitudeDelta: number;
     longitudeDelta: number;
   }
 
-  const CoordinateSpan: {
-    new (latitudeDelta: number, longitudeDelta: number): CoordinateSpan;
-  };
-
-  // CoordinateRegion definition
+  // CoordinateRegion: Represents a rectangular geographic region centered around a coordinate.
   interface CoordinateRegion {
     center: Coordinate;
     span: CoordinateSpan;
   }
 
-  const CoordinateRegion: {
-    new (center: Coordinate, span: CoordinateSpan): CoordinateRegion;
-  };
+  // Initialize the MapKit JS library.
+  function init(options: InitOptions): void;
 
-  // MarkerAnnotation options
+  // Options for initializing MapKit JS.
+  interface InitOptions {
+    authorizationCallback: (done: (token: string) => void) => void;
+    language?: string; // Optional: Set the language for the map.
+    mapType?: Map.MapTypes; // Optional: Set a default map type.
+    build?: string; // Optional: Specify a build version.
+    tileSize?: number; // Optional: Specify tile size (e.g., 256 or 512).
+    showsUserLocationControl?: boolean; // Optional: Show user location control.
+  }
+
+  // Map: Represents a MapKit JS map object.
+  class Map {
+    constructor(
+      container: string | HTMLElement,
+      options?: MapConstructorOptions
+    );
+
+    // Properties
+    center: Coordinate;
+    region: CoordinateRegion;
+    mapType: Map.MapTypes;
+    colorScheme: Map.ColorSchemes;
+    distances: Map.Distances;
+    showsPointsOfInterest: boolean;
+    showsScale: boolean;
+    padding: Padding;
+    pointOfInterestFilter?: PointOfInterestFilter;
+    cameraBoundary?: CoordinateRegion | null;
+    cameraZoomRange?: CameraZoomRange | null;
+
+    // Methods
+    setCenterCoordinate(coordinate: Coordinate, animated?: boolean): void;
+    setRegion(region: CoordinateRegion, animated?: boolean): void;
+    addAnnotation(annotation: Annotation): void;
+    removeAnnotation(annotation: Annotation): void;
+    setFeatureVisibility(feature: string, visibility: FeatureVisibility): void;
+    convertPointOnPageToCoordinate(point: DOMPoint): Coordinate;
+    destroy(): void;
+  }
+
+  class MarkerAnnotation implements Annotation {
+    constructor(coordinate: Coordinate, options?: MarkerAnnotationOptions);
+
+    coordinate: Coordinate;
+    title?: string;
+    subtitle?: string;
+    glyphText?: string;
+    selected?: boolean;
+    displayPriority?: number;
+    padding?: Padding;
+    anchorOffset?: DOMPoint;
+    calloutOffset?: DOMPoint;
+    callout?: AnnotationCalloutDelegate;
+    collisionMode?: Annotation.CollisionMode;
+
+    glyphImage?: string;
+    glyphColor?: string;
+    markerColor?: string;
+    animates?: boolean;
+    selectedGlyphImage?: string;
+    clusteringIdentifier?: string;
+
+    subtitleVisibility?: FeatureVisibility; // Added subtitleVisibility property
+    titleVisibility?: FeatureVisibility; // Added titleVisibility property
+
+    select(): void;
+    deselect(): void;
+  }
+
+  // Options for creating a MarkerAnnotation.
   interface MarkerAnnotationOptions {
     title?: string;
     subtitle?: string;
-    selected?: boolean;
-    draggable?: boolean;
-    visible?: boolean;
-    color?: string;
     glyphText?: string;
     glyphImage?: string;
-    displayPriority?: number | "low" | "high" | "required";
-  }
-
-  // MarkerAnnotation interface
-  interface MarkerAnnotation extends Annotation {
-    color?: string;
-    glyphText?: string;
-    glyphImage?: string;
-  }
-
-  const MarkerAnnotation: {
-    new (
-      coordinate: Coordinate,
-      options?: MarkerAnnotationOptions
-    ): MarkerAnnotation;
-  };
-
-  // Annotation options
-  interface AnnotationConstructorOptions {
-    title?: string;
-    subtitle?: string;
-    accessibilityLabel?: string;
-    anchorOffset?: DOMPoint;
-    selected?: boolean;
+    glyphColor?: string;
+    markerColor?: string;
     animates?: boolean;
-    appearanceAnimation?: string;
-    draggable?: boolean;
-    enabled?: boolean;
-    visible?: boolean;
+    selectedGlyphImage?: string;
     clusteringIdentifier?: string;
-    collisionMode?: "rectangle" | "circle" | "none";
-    displayPriority?: number | "low" | "high" | "required";
+    displayPriority?: number;
+    padding?: Padding;
+    anchorOffset?: DOMPoint;
     calloutOffset?: DOMPoint;
-    calloutEnabled?: boolean;
-    calloutLeftAccessory?: React.ReactNode;
-    calloutRightAccessory?: React.ReactNode;
-    calloutContent?: React.ReactNode;
-    calloutElement?: React.ReactNode;
+    callout?: AnnotationCalloutDelegate;
+    collisionMode?: Annotation.CollisionMode;
+    subtitleVisibility?: FeatureVisibility; // Added subtitleVisibility option
+    titleVisibility?: FeatureVisibility; // Added titleVisibility option
   }
 
-  // Annotation interface
-  interface Annotation extends EventTarget {
+  interface AnnotationCalloutDelegate {
+    calloutElementForAnnotation?: () => HTMLElement | null;
+    calloutLeftAccessoryForAnnotation?: () => HTMLElement | null;
+    calloutRightAccessoryForAnnotation?: () => HTMLElement | null;
+    calloutContentForAnnotation?: () => HTMLElement | null;
+  }
+
+  namespace Map {
+    enum MapTypes {
+      Standard = "standard",
+      MutedStandard = "mutedStandard",
+      Hybrid = "hybrid",
+      Satellite = "satellite",
+    }
+
+    enum ColorSchemes {
+      Light = "light",
+      Dark = "dark",
+    }
+
+    enum Distances {
+      Adaptive = "adaptive",
+      Metric = "metric",
+      Imperial = "imperial",
+    }
+
+    enum LoadPriorities {
+      LandCover = "landCover",
+      PointsOfInterest = "pointsOfInterest",
+      None = "none",
+    }
+    enum FeatureVisibility {
+      Hidden = "hidden",
+      Visible = "visible",
+      Adaptive = "adaptive",
+    }
+  }
+
+  namespace Annotation {
+    enum CollisionMode {
+      Circle = "circle",
+      Rectangle = "rectangle",
+    }
+  }
+
+  // Annotation: Represents a point of interest on the map.
+  class Annotation {
+    constructor(
+      coordinate: Coordinate,
+      element: (() => HTMLElement) | string | null,
+      options?: AnnotationOptions
+    );
+
     coordinate: Coordinate;
     title?: string;
     subtitle?: string;
-    selected: boolean;
-    draggable: boolean;
-    visible: boolean;
-    remove(): void;
-    addEventListener(
-      type: string,
-      callback: EventListenerOrEventListenerObject | null,
-      options?: boolean | AddEventListenerOptions
-    ): void;
-    removeEventListener(
-      type: string,
-      callback: EventListenerOrEventListenerObject | null,
-      options?: boolean | EventListenerOptions
-    ): void;
-    element?: HTMLElement;
+    glyphText?: string;
+    selected?: boolean;
+    displayPriority?: number;
+    padding?: Padding;
+    anchorOffset?: DOMPoint;
+    calloutOffset?: DOMPoint;
+    callout?: AnnotationCalloutDelegate;
+    collisionMode?: Annotation.CollisionMode; // Added collisionMode property
+
+    // Methods
+    select(): void;
+    deselect(): void;
   }
 
-  // PolygonOverlay options
-  interface PolygonOverlayOptions {
-    fillColor?: string; // Directly add fillColor here
-    strokeColor?: string; // Directly add strokeColor here
-    lineWidth?: number; // Directly add lineWidth here
+  // PointOfInterestCategory: Enum for POI categories.
+  enum PointOfInterestCategory {
+    Airport = "airport",
+    AmusementPark = "amusementPark",
+    Aquarium = "aquarium",
+    ATM = "atm",
+    Bakery = "bakery",
+    Bank = "bank",
+    Beach = "beach",
+    Brewery = "brewery",
+    Cafe = "cafe",
+    Campground = "campground",
+    CarRental = "carRental",
+    EVCharger = "evCharger",
+    FireStation = "fireStation",
+    FitnessCenter = "fitnessCenter",
+    FoodMarket = "foodMarket",
+    GasStation = "gasStation",
+    Hospital = "hospital",
+    Hotel = "hotel",
+    Laundry = "laundry",
+    Library = "library",
+    Marina = "marina",
+    MovieTheater = "movieTheater",
+    Museum = "museum",
+    NationalPark = "nationalPark",
+    Nightlife = "nightlife",
+    Park = "park",
+    Parking = "parking",
+    Pharmacy = "pharmacy",
+    Police = "police",
+    PostOffice = "postOffice",
+    PublicTransport = "publicTransport",
+    Restaurant = "restaurant",
+    Restroom = "restroom",
+    School = "school",
+    Stadium = "stadium",
+    Store = "store",
+    Theater = "theater",
+    University = "university",
+    Winery = "winery",
+    Zoo = "zoo",
   }
 
-  // PolygonOverlay interface
-  interface PolygonOverlay extends Overlay {
-    addEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject | null,
-      options?: boolean | AddEventListenerOptions
-    ): void;
-    removeEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject | null,
-      options?: boolean | EventListenerOptions
-    ): void;
+  // FeatureVisibility: Enum for controlling visibility of map features.
+  enum FeatureVisibility {
+    Hidden = "hidden",
+    Visible = "visible",
+    Adaptive = "adaptive",
   }
 
-  const PolygonOverlay: {
-    new (
-      coordinates: Coordinate[],
-      options?: PolygonOverlayOptions
-    ): PolygonOverlay;
-  };
-
-  // PolylineOverlay options
-  interface PolylineOverlayOptions {
-    strokeColor?: string;
-    lineWidth?: number;
-    lineCap?: "butt" | "round" | "square"; // Kept lineCap as it's supported
-    lineDash?: number[]; // Added lineDash to support dashed lines
+  // Display priority for annotations.
+  enum DisplayPriority {
+    Low = "low",
+    High = "high",
+    Required = "required",
   }
 
-  // PolylineOverlay interface
-  interface PolylineOverlay extends Overlay {
-    addEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject | null,
-      options?: boolean | AddEventListenerOptions
-    ): void;
-    removeEventListener(
-      type: string,
-      listener: EventListenerOrEventListenerObject | null,
-      options?: boolean | EventListenerOptions
-    ): void;
-  }
-
-  const PolylineOverlay: {
-    new (
-      coordinates: Coordinate[],
-      options?: PolylineOverlayOptions
-    ): PolylineOverlay;
-  };
-
-  // Overlay interface
-  interface Overlay extends EventTarget {}
-
-  // Annotation event interface
-  interface AnnotationEvent extends Event {
-    coordinate: Coordinate;
-  }
-
-  const Annotation: {
-    new (
-      coordinate: Coordinate,
-      options?: AnnotationConstructorOptions
-    ): Annotation;
-  };
-
-  // Event types
-  interface MapInteractionEvent {
+  // Coordinate: Represents a point on the Earth's surface.
+  class Coordinate {
+    constructor(latitude: number, longitude: number);
     latitude: number;
     longitude: number;
-    x: number;
-    y: number;
   }
 
-  interface UserLocationErrorEvent {
-    code: number;
-    message: string;
+  // CoordinateSpan: Represents the amount of map to display in latitude and longitude degrees.
+  class CoordinateSpan {
+    constructor(latitudeDelta: number, longitudeDelta: number);
+    latitudeDelta: number;
+    longitudeDelta: number;
   }
 
-  // Event handler types
-  type LoadEventHandler = () => void;
-  type RegionChangeStartEventHandler = (currentValue: CoordinateRegion) => void;
-  type RegionChangeEndEventHandler = (newValue: CoordinateRegion) => void;
-  type MapTypeChangeEventHandler = (newValue: string) => void;
-  type MapInteractionEventHandler = (event: MapInteractionEvent) => void;
-  type UserLocationChangeEventHandler = (location: Coordinate) => void;
-  type UserLocationErrorEventHandler = (event: UserLocationErrorEvent) => void;
-  type AnnotationEventHandler = (event: AnnotationEvent) => void;
+  // CoordinateRegion: Represents a rectangular geographic region centered around a coordinate.
+  class CoordinateRegion {
+    constructor(center: Coordinate, span: CoordinateSpan);
+    center: Coordinate;
+    span: CoordinateSpan;
+  }
 
-  // Initialize MapKit
-  function init(options: {
-    authorizationCallback: (done: (token: string) => void) => void;
-  }): void;
+  // Padding: Represents padding for the map view.
+  class Padding {
+    constructor(top: number, right: number, bottom: number, left: number);
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  }
 
-  var Map: MapConstructor;
-}
+  // CameraZoomRange: Represents zoom range constraints for the map.
+  class CameraZoomRange {
+    constructor(minimumDistance: number, maximumDistance?: number);
+    minimumDistance: number;
+    maximumDistance?: number;
+  }
 
-// Extend the global Window interface
-interface Window {
-  mapkit: typeof mapkit;
+  // PointOfInterestFilter: Filters points of interest displayed on the map.
+  class PointOfInterestFilter {
+    static including(
+      categories: PointOfInterestCategory[]
+    ): PointOfInterestFilter;
+    static excluding(
+      categories: PointOfInterestCategory[]
+    ): PointOfInterestFilter;
+  }
+
+  // Interface for converter functions
+  interface MapKitConverters {
+    toMapKitFeatureVisibility(featureVisibility: FeatureVisibility): string;
+
+    // Converts a custom CoordinateRegion to a MapKit CoordinateRegion.
+    toMapKitCoordinateRegion(region: CoordinateRegion): mapkit.CoordinateRegion;
+
+    // Converts a MapKit CoordinateRegion to a custom CoordinateRegion.
+    fromMapKitRegion(region: mapkit.CoordinateRegion): CoordinateRegion;
+
+    toMapKitMapType(mapType: Map.MapTypes): Map.MapTypes;
+    toMapKitDistances(distances: Map.Distances): Map.Distances;
+  }
+
+  // Options for creating a Map instance.
+  interface MapConstructorOptions {
+    center?: Coordinate;
+    region?: CoordinateRegion;
+    mapType?: Map.MapTypes;
+    colorScheme?: Map.ColorSchemes;
+    distances?: Map.Distances;
+    showsPointsOfInterest?: boolean;
+    showsScale?: boolean;
+    cameraBoundary?: CoordinateRegion | null;
+    cameraZoomRange?: CameraZoomRange | null;
+  }
 }
