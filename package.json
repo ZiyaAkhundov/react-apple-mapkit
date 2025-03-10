@@ -1,6 +1,6 @@
 {
   "name": "react-apple-mapkit",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "A React wrapper for Apple MapKit JS.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +17,7 @@
     "maps",
     "typescript"
   ],
-  "author": "Your Name",
+  "author": "Ziya Akhundov",
   "license": "MIT",
   "repository": {
     "type": "git",
