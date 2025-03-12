@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import MapContext from "../../context/MapContext";
 import AnnotationProps from "../../types/annotation-types";
-import forwardMapkitEvent from "../../utils/event";
 import { createPortal } from "react-dom";
 import CalloutContainer from "../CalloutContainer";
 import useAnnotationPadding from "./hooks/useAnnotationPadding";
@@ -16,6 +15,7 @@ import useAnnotationCalloutOffset from "./hooks/useAnnotationCalloutOffset";
 import useAnnotationCallout from "./hooks/useAnnotationCallout";
 import useAnnotationCollisionMode from "./hooks/useAnnotationCollisionMode";
 import useAnnotationProperties from "./hooks/useAnnotationProperties";
+import useForwardMapEvent from "../../hooks/useForwardMapEvent";
 
 const Annotation: React.FC<AnnotationProps> = ({
   latitude,
@@ -115,6 +115,10 @@ const Annotation: React.FC<AnnotationProps> = ({
     { name: "drag-start", handler: onDragStart },
   ] as const;
 
+    events.forEach(({ name, handler }) => {
+      useForwardMapEvent(annotation, name, handler, handlerWithoutParameters);
+    });
+
   const dragEndParameters = () => ({
     latitude: annotation!.coordinate.latitude,
     longitude: annotation!.coordinate.longitude,
@@ -125,8 +129,8 @@ const Annotation: React.FC<AnnotationProps> = ({
     longitude: e.coordinate.longitude,
   });
 
-  forwardMapkitEvent(annotation, "drag-end", onDragEnd, dragEndParameters);
-  forwardMapkitEvent(annotation, "dragging", onDragging, draggingParameters);
+  useForwardMapEvent(annotation, "drag-end", onDragEnd, dragEndParameters);
+  useForwardMapEvent(annotation, "dragging", onDragging, draggingParameters);
 
   useLayoutEffect(() => {
     if (map === null) return undefined;

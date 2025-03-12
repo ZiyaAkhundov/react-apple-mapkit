@@ -7,7 +7,6 @@ import React, {
 import MapContext from "../../context/MapContext";
 import MarkerProps from "../../types/marker-types";
 import { FeatureVisibility } from "../../enums";
-import forwardMapkitEvent from "../../utils/event";
 import { createPortal } from "react-dom";
 import CalloutContainer from "../CalloutContainer";
 import useMarkerPadding from "./hooks/useMarkerPadding";
@@ -17,6 +16,7 @@ import useMarkerCallout from "./hooks/useMarkerCallout";
 import useMarkerCollisionMode from "./hooks/useMarkerCollisionMode";
 import useMarkerProperties from "./hooks/useMarkerProperties";
 import useMarkerTitleVisibility from "./hooks/useMarkerTitleVisibility";
+import useForwardMapEvent from "../../hooks/useForwardMapEvent";
 
 const Marker: React.FC<MarkerProps> = ({
   title = "",
@@ -126,7 +126,7 @@ const Marker: React.FC<MarkerProps> = ({
   ] as const;
 
   events.forEach(({ name, handler }) => {
-    forwardMapkitEvent(marker, name, handler, handlerWithoutParameters);
+    useForwardMapEvent(marker, name, handler, handlerWithoutParameters);
   });
 
   const dragEndParameters = () => ({
@@ -139,8 +139,8 @@ const Marker: React.FC<MarkerProps> = ({
     longitude: e.coordinate.longitude,
   });
 
-  forwardMapkitEvent(marker, "drag-end", onDragEnd, dragEndParameters);
-  forwardMapkitEvent(marker, "dragging", onDragging, draggingParameters);
+  useForwardMapEvent(marker, "drag-end", onDragEnd, dragEndParameters);
+  useForwardMapEvent(marker, "dragging", onDragging, draggingParameters);
 
   // Coordinates
   useLayoutEffect(() => {

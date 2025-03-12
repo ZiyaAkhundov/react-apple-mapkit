@@ -7,7 +7,6 @@ import {
   generateRegion,
   toMapCoordinateRegion,
 } from "../../utils/converter";
-import forwardMapkitEvent from "../../utils/event";
 import {
   MapKitMapInteractionEvent,
   MapKitUserLocationChangeEvent,
@@ -22,6 +21,7 @@ import useMapCameraBoundary from "./hooks/useMapCameraBoundary";
 import useMapCameraZoomRange from "./hooks/useMapCameraZoomRange";
 import useMapPointOfInterestFilter from "./hooks/useMapPointOfInterestFilter";
 import { convertFromMapType } from "../../utils/map-type";
+import useForwardMapEvent from "../../hooks/useForwardMapEvent";
 
 const Map = React.forwardRef<
   mapkit.Map | null,
@@ -140,19 +140,19 @@ const Map = React.forwardRef<
 
     // MapKit JS events
     const regionHandler = () => generateRegion(map!.region);
-    forwardMapkitEvent(
+    useForwardMapEvent(
       map,
       "region-change-start",
       onRegionChangeStart,
       regionHandler
     );
-    forwardMapkitEvent(
+    useForwardMapEvent(
       map,
       "region-change-end",
       onRegionChangeEnd,
       regionHandler
     );
-    forwardMapkitEvent(map, "map-type-change", onMapTypeChange, () =>
+    useForwardMapEvent(map, "map-type-change", onMapTypeChange, () =>
       convertFromMapType(map!.mapType)
     );
 
@@ -164,11 +164,11 @@ const Map = React.forwardRef<
       pointOnPage,
       toCoordinates: () => map!.convertPointOnPageToCoordinate(pointOnPage),
     });
-    forwardMapkitEvent(map, "single-tap", onSingleTap, interactionEvent);
-    forwardMapkitEvent(map, "double-tap", onDoubleTap, interactionEvent);
-    forwardMapkitEvent(map, "long-press", onLongPress, interactionEvent);
+    useForwardMapEvent(map, "single-tap", onSingleTap, interactionEvent);
+    useForwardMapEvent(map, "double-tap", onDoubleTap, interactionEvent);
+    useForwardMapEvent(map, "long-press", onLongPress, interactionEvent);
 
-    forwardMapkitEvent(
+    useForwardMapEvent(
       map,
       "user-location-change",
       onUserLocationChange,
@@ -183,7 +183,7 @@ const Map = React.forwardRef<
       })
     );
 
-    forwardMapkitEvent(
+    useForwardMapEvent(
       map,
       "user-location-error",
       onUserLocationError,

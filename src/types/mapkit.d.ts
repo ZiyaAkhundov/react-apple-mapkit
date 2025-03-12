@@ -58,6 +58,10 @@ declare namespace mapkit {
     setFeatureVisibility(feature: string, visibility: FeatureVisibility): void;
     convertPointOnPageToCoordinate(point: DOMPoint): Coordinate;
     destroy(): void;
+
+    // Event handling methods
+    addEventListener(type: string, listener: (event: any) => void): void;
+    removeEventListener(type: string, listener: (event: any) => void): void;
   }
 
   class MarkerAnnotation implements Annotation {
@@ -87,6 +91,10 @@ declare namespace mapkit {
 
     select(): void;
     deselect(): void;
+
+    // Event handling methods
+    addEventListener(type: string, listener: (event: any) => void): void;
+    removeEventListener(type: string, listener: (event: any) => void): void;
   }
 
   // Options for creating a MarkerAnnotation.
@@ -178,6 +186,10 @@ declare namespace mapkit {
     // Methods
     select(): void;
     deselect(): void;
+
+    // Event handling methods
+    addEventListener(type: string, listener: (event: any) => void): void;
+    removeEventListener(type: string, listener: (event: any) => void): void;
   }
 
   // PointOfInterestCategory: Enum for POI categories.
