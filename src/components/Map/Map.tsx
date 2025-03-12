@@ -1,23 +1,27 @@
 import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
-import mapLoader from "../utils/map-loader";
-import MapContext from "../context/MapContext";
-import { Distances, FeatureVisibility, MapType } from "../enums";
-import MapProps from "../types/map-types";
+import mapLoader from "../../utils/map-loader";
+import MapContext from "../../context/MapContext";
+import { Distances, FeatureVisibility, MapType } from "../../enums";
+import MapProps from "../../types/map-types";
 import {
-  fromMapKitMapType,
-  fromMapKitRegion,
-  toMapKitCoordinateRegion,
-  toMapKitDistances,
-  toMapKitFeatureVisibility,
-  toMapKitMapType,
-  toMapKitPOICategory,
-} from "../utils/converter";
-import forwardMapkitEvent from "../utils/event";
+  generateRegion,
+  toMapCoordinateRegion,
+} from "../../utils/converter";
+import forwardMapkitEvent from "../../utils/event";
 import {
   MapKitMapInteractionEvent,
   MapKitUserLocationChangeEvent,
   MapKitUserLocationErrorEvent,
-} from "../types/event-types";
+} from "../../types/event-types";
+import useMapBooleanProperties from "./hooks/useMapBooleanProperties";
+import useMapFeatureVisibilityProperties from "./hooks/useMapFeatureVisibilityProperties";
+import useMapPadding from "./hooks/useMapPadding";
+import useMapType from "./hooks/useMapType";
+import useMapDistances from "./hooks/useMapDistances";
+import useMapCameraBoundary from "./hooks/useMapCameraBoundary";
+import useMapCameraZoomRange from "./hooks/useMapCameraZoomRange";
+import useMapPointOfInterestFilter from "./hooks/useMapPointOfInterestFilter";
+import { convertFromMapType } from "../../utils/map-type";
 
 const Map = React.forwardRef<
   mapkit.Map | null,
@@ -84,7 +88,7 @@ const Map = React.forwardRef<
       loadMap(token).then(() => {
         if (exists.current) return;
         const options = initialRegion
-          ? { region: toMapKitCoordinateRegion(initialRegion) }
+          ? { region: toMapCoordinateRegion(initialRegion) }
           : {};
         setMap(new mapkit.Map(element.current!, options));
         exists.current = true;
@@ -118,87 +122,24 @@ const Map = React.forwardRef<
       tracksUserLocation,
     };
 
-    Object.entries(booleanProperties).forEach(([propertyName, prop]) => {
-      useEffect(() => {
-        if (!map) return;
-        map[propertyName] = prop;
-      }, [map, prop]);
-    });
+    useMapBooleanProperties(map, booleanProperties);
 
     const featureVisibilityProperties = {
       showsCompass,
       showsScale,
     };
-    Object.entries(featureVisibilityProperties).forEach(
-      ([propertyName, prop]) => {
-        useEffect(() => {
-          if (!map) return;
-          map[propertyName] = toMapKitFeatureVisibility(prop);
-        }, [map, prop]);
-      }
-    );
+   
+    useMapFeatureVisibilityProperties(map, featureVisibilityProperties);
 
-    // Padding
-    useEffect(() => {
-      if (!map) return;
-      map.padding = new mapkit.Padding(
-        paddingTop,
-        paddingRight,
-        paddingBottom,
-        paddingLeft
-      );
-    }, [map, paddingTop, paddingRight, paddingBottom, paddingLeft]);
-
-    useEffect(() => {
-      if (!map) return;
-      map.mapType = toMapKitMapType(mapType);
-    }, [map, mapType]);
-    
-    useEffect(() => {
-      if (!map) return;
-      map.distances = toMapKitDistances(distances);
-    }, [map, distances]);
-
-    // Camera boundary
-    useEffect(() => {
-      if (!map) return;
-      map.cameraBoundary = cameraBoundary
-        ? toMapKitCoordinateRegion(cameraBoundary)
-        : null;
-    }, [map, cameraBoundary]);
-
-    // Camera zoom range
-    useEffect(() => {
-      if (!map) return;
-      map.cameraZoomRange = new mapkit.CameraZoomRange(
-        minCameraDistance,
-        maxCameraDistance
-      );
-    }, [map, minCameraDistance, maxCameraDistance]);
-
-    // Point of interest filter
-    useEffect(() => {
-      if (!map) return;
-
-      if (includedPOICategories && excludedPOICategories) {
-        throw new Error(
-          "Can’t specify both includedPOICategories and excludedPOICategories."
-        );
-      } else if (includedPOICategories) {
-        map.pointOfInterestFilter = mapkit.PointOfInterestFilter.including(
-          includedPOICategories.map(toMapKitPOICategory)
-        );
-      } else if (excludedPOICategories) {
-        map.pointOfInterestFilter = mapkit.PointOfInterestFilter.excluding(
-          excludedPOICategories.map(toMapKitPOICategory)
-        );
-      } else {
-        delete map.pointOfInterestFilter;
-      }
-    }, [map, includedPOICategories, excludedPOICategories]);
+    useMapPadding(map, paddingTop, paddingRight, paddingBottom, paddingLeft);
+    useMapType(map, mapType);
+    useMapDistances(map, distances);
+    useMapCameraBoundary(map, cameraBoundary);
+    useMapCameraZoomRange(map, minCameraDistance, maxCameraDistance);
+    useMapPointOfInterestFilter(map, includedPOICategories, excludedPOICategories);
 
     // MapKit JS events
-    const regionHandler = () => fromMapKitRegion(map!.region);
+    const regionHandler = () => generateRegion(map!.region);
     forwardMapkitEvent(
       map,
       "region-change-start",
@@ -212,7 +153,7 @@ const Map = React.forwardRef<
       regionHandler
     );
     forwardMapkitEvent(map, "map-type-change", onMapTypeChange, () =>
-      fromMapKitMapType(map!.mapType)
+      convertFromMapType(map!.mapType)
     );
 
     const interactionEvent = ({

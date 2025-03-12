@@ -1,17 +1,22 @@
 import React, {
-  useEffect,
   useRef,
   useContext,
   useState,
   useLayoutEffect,
 } from "react";
-import MapContext from "../context/MapContext";
-import MarkerProps from "../types/marker-types";
-import { FeatureVisibility } from "../enums";
-import { toMapKitFeatureVisibility } from "../utils/converter";
-import forwardMapkitEvent from "../utils/event";
+import MapContext from "../../context/MapContext";
+import MarkerProps from "../../types/marker-types";
+import { FeatureVisibility } from "../../enums";
+import forwardMapkitEvent from "../../utils/event";
 import { createPortal } from "react-dom";
-import CalloutContainer from "./CalloutContainer";
+import CalloutContainer from "../CalloutContainer";
+import useMarkerPadding from "./hooks/useMarkerPadding";
+import useMarkerAnchorOffset from "./hooks/useMarkerAnchorOffset";
+import useMarkerCalloutOffset from "./hooks/useMarkerCalloutOffset";
+import useMarkerCallout from "./hooks/useMarkerCallout";
+import useMarkerCollisionMode from "./hooks/useMarkerCollisionMode";
+import useMarkerProperties from "./hooks/useMarkerProperties";
+import useMarkerTitleVisibility from "./hooks/useMarkerTitleVisibility";
 
 const Marker: React.FC<MarkerProps> = ({
   title = "",
@@ -61,96 +66,30 @@ const Marker: React.FC<MarkerProps> = ({
   const [marker, setMarker] = useState<mapkit.MarkerAnnotation | null>(null);
   const map = useContext(MapContext);
 
-  useEffect(() => {
-    if (!marker) return;
-    marker.subtitleVisibility = toMapKitFeatureVisibility(subtitleVisibility);
-  }, [marker, subtitleVisibility]);
+  useMarkerTitleVisibility(marker, titleVisibility, subtitleVisibility)
 
-  useEffect(() => {
-    if (!marker) return;
-    marker.titleVisibility = toMapKitFeatureVisibility(titleVisibility);
-  }, [marker, titleVisibility]);
-
-  // Padding
-  useEffect(() => {
-    if (!marker) return;
-    marker.padding = new mapkit.Padding(
-      paddingTop,
-      paddingRight,
-      paddingBottom,
-      paddingLeft
-    );
-  }, [marker, paddingTop, paddingRight, paddingBottom, paddingLeft]);
-
-  // AnchorOffset
-  useEffect(() => {
-    if (!marker) return;
-    marker.anchorOffset = new DOMPoint(anchorOffsetX, anchorOffsetY);
-  }, [marker, anchorOffsetX, anchorOffsetY]);
-
-  // CalloutOffset
-  useEffect(() => {
-    if (!marker) return;
-    marker.calloutOffset = new DOMPoint(calloutOffsetX, calloutOffsetY);
-  }, [marker, calloutOffsetX, calloutOffsetY]);
+  useMarkerPadding(marker, paddingTop, paddingRight, paddingBottom, paddingLeft);
+  useMarkerAnchorOffset(marker, anchorOffsetX, anchorOffsetY);
+  useMarkerCalloutOffset(marker, calloutOffsetX, calloutOffsetY);
 
   const calloutLeftAccessoryRef = useRef<HTMLDivElement>(null);
   const calloutRightAccessoryRef = useRef<HTMLDivElement>(null);
   const calloutContentRef = useRef<HTMLDivElement>(null);
   const calloutElementRef = useRef<HTMLDivElement>(null);
 
-  // Callout
-  useLayoutEffect(() => {
-    if (!marker) return;
-
-    const callOutObj: mapkit.AnnotationCalloutDelegate = {};
-    if (calloutElement && calloutElementRef.current !== null) {
-      callOutObj.calloutElementForAnnotation = () => calloutElementRef.current;
-    }
-    if (calloutLeftAccessory && calloutLeftAccessoryRef.current !== null) {
-      callOutObj.calloutLeftAccessoryForAnnotation = () =>
-        calloutLeftAccessoryRef.current;
-    }
-    if (calloutRightAccessory && calloutRightAccessoryRef.current !== null) {
-      callOutObj.calloutRightAccessoryForAnnotation = () =>
-        calloutRightAccessoryRef.current;
-    }
-    if (calloutContent && calloutContentRef.current !== null) {
-      callOutObj.calloutContentForAnnotation = () => calloutContentRef.current;
-    }
-    if (Object.keys(callOutObj).length > 0) {
-      marker.callout = callOutObj;
-    } else {
-      delete marker.callout;
-    }
-
-    return () => {
-      delete marker.callout;
-    };
-  }, [
+  useMarkerCallout(
     marker,
     calloutElement,
     calloutLeftAccessory,
     calloutRightAccessory,
     calloutContent,
-    calloutElementRef.current,
-    calloutLeftAccessoryRef.current,
-    calloutRightAccessoryRef.current,
-    calloutContentRef.current,
-  ]);
+    calloutElementRef,
+    calloutLeftAccessoryRef,
+    calloutRightAccessoryRef,
+    calloutContentRef
+  );
 
-  // Collision Mode
-  useEffect(() => {
-    if (!marker) return;
-
-    if (collisionMode === "Circle") {
-      marker.collisionMode = mapkit.Annotation.CollisionMode.Circle;
-    } else if (collisionMode === "Rectangle") {
-      marker.collisionMode = mapkit.Annotation.CollisionMode.Rectangle;
-    } else {
-      delete marker.collisionMode;
-    }
-  }, [marker, collisionMode]);
+  useMarkerCollisionMode(marker, collisionMode);
 
   const properties = {
     title,
@@ -176,16 +115,7 @@ const Marker: React.FC<MarkerProps> = ({
     calloutEnabled,
   };
 
-  Object.entries(properties).forEach(([propertyName, prop]) => {
-    useEffect(() => {
-      if (!marker) return;
-      if (prop === undefined) {
-        delete marker[propertyName];
-        return;
-      }
-      marker[propertyName] = prop;
-    }, [marker, prop]);
-  });
+  useMarkerProperties(marker, properties);
 
   // Events
   const handlerWithoutParameters = () => {};

@@ -17,6 +17,6 @@ export {
 } from "./enums";
 
 // Export components
-export { default as Map } from "./components/Map";
-export { default as Marker } from "./components/Marker";
-export { default as Annotation } from "./components/Annotation";
+export { default as Map } from "./components/Map/Map";
+export { default as Marker } from "./components/Marker/Marker";
+export { default as Annotation } from "./components/Annotation/Annotation";

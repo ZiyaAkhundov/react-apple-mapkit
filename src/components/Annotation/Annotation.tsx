@@ -1,16 +1,21 @@
 import React, {
-  useEffect,
   useRef,
   useContext,
   useMemo,
   useState,
   useLayoutEffect,
 } from "react";
-import MapContext from "../context/MapContext";
-import AnnotationProps from "../types/annotation-types";
-import forwardMapkitEvent from "../utils/event";
+import MapContext from "../../context/MapContext";
+import AnnotationProps from "../../types/annotation-types";
+import forwardMapkitEvent from "../../utils/event";
 import { createPortal } from "react-dom";
-import CalloutContainer from "./CalloutContainer";
+import CalloutContainer from "../CalloutContainer";
+import useAnnotationPadding from "./hooks/useAnnotationPadding";
+import useAnnotationAnchorOffset from "./hooks/useAnnotationAnchorOffset";
+import useAnnotationCalloutOffset from "./hooks/useAnnotationCalloutOffset";
+import useAnnotationCallout from "./hooks/useAnnotationCallout";
+import useAnnotationCollisionMode from "./hooks/useAnnotationCollisionMode";
+import useAnnotationProperties from "./hooks/useAnnotationProperties";
 
 const Annotation: React.FC<AnnotationProps> = ({
   latitude,
@@ -61,84 +66,29 @@ const Annotation: React.FC<AnnotationProps> = ({
   );
   const map = useContext(MapContext);
 
-  useEffect(() => {
-    if (!annotation) return;
-    annotation.padding = new mapkit.Padding(
-      paddingTop,
-      paddingRight,
-      paddingBottom,
-      paddingLeft
-    );
-  }, [annotation, paddingTop, paddingRight, paddingBottom, paddingLeft]);
-
-  // AnchorOffset
-  useEffect(() => {
-    if (!annotation) return;
-    annotation.anchorOffset = new DOMPoint(anchorOffsetX, anchorOffsetY);
-  }, [annotation, anchorOffsetX, anchorOffsetY]);
-
-  // CalloutOffset
-  useEffect(() => {
-    if (!annotation) return;
-    annotation.calloutOffset = new DOMPoint(calloutOffsetX, calloutOffsetY);
-  }, [annotation, calloutOffsetX, calloutOffsetY]);
+  useAnnotationPadding(annotation, paddingTop, paddingRight, paddingBottom, paddingLeft);
+  useAnnotationAnchorOffset(annotation, anchorOffsetX, anchorOffsetY);
+  useAnnotationCalloutOffset(annotation, calloutOffsetX, calloutOffsetY);
 
   const calloutLeftAccessoryRef = useRef<HTMLDivElement>(null);
   const calloutRightAccessoryRef = useRef<HTMLDivElement>(null);
   const calloutContentRef = useRef<HTMLDivElement>(null);
   const calloutElementRef = useRef<HTMLDivElement>(null);
 
-  // Callout
-  useLayoutEffect(() => {
-    if (!annotation) return;
-
-    const callOutObj: mapkit.AnnotationCalloutDelegate = {};
-    if (calloutElement && calloutElementRef.current !== null) {
-      callOutObj.calloutElementForAnnotation = () => calloutElementRef.current;
-    }
-    if (calloutLeftAccessory && calloutLeftAccessoryRef.current !== null) {
-      callOutObj.calloutLeftAccessoryForAnnotation = () =>
-        calloutLeftAccessoryRef.current;
-    }
-    if (calloutRightAccessory && calloutRightAccessoryRef.current !== null) {
-      callOutObj.calloutRightAccessoryForAnnotation = () =>
-        calloutRightAccessoryRef.current;
-    }
-    if (calloutContent && calloutContentRef.current !== null) {
-      callOutObj.calloutContentForAnnotation = () => calloutContentRef.current;
-    }
-    if (Object.keys(callOutObj).length > 0) {
-      annotation.callout = callOutObj;
-    } else {
-      delete annotation.callout;
-    }
-
-    return () => {
-      delete annotation.callout;
-    };
-  }, [
+  useAnnotationCallout(
     annotation,
     calloutElement,
     calloutLeftAccessory,
     calloutRightAccessory,
     calloutContent,
-    calloutElementRef.current,
-    calloutLeftAccessoryRef.current,
-    calloutRightAccessoryRef.current,
-    calloutContentRef.current,
-  ]);
+    calloutElementRef,
+    calloutLeftAccessoryRef,
+    calloutRightAccessoryRef,
+    calloutContentRef
+  );
 
-  useEffect(() => {
-    if (!annotation) return;
+  useAnnotationCollisionMode(annotation, collisionMode);
 
-    if (collisionMode === "Circle") {
-      annotation.collisionMode = mapkit.Annotation.CollisionMode.Circle;
-    } else if (collisionMode === "Rectangle") {
-      annotation.collisionMode = mapkit.Annotation.CollisionMode.Rectangle;
-    } else {
-      delete annotation.collisionMode;
-    }
-  }, [annotation, collisionMode]);
 
   const properties = {
     title,
@@ -155,16 +105,7 @@ const Annotation: React.FC<AnnotationProps> = ({
     calloutEnabled,
   };
 
-  Object.entries(properties).forEach(([propertyName, prop]) => {
-    useEffect(() => {
-      if (!annotation) return;
-      if (prop === undefined) {
-        delete annotation[propertyName];
-        return;
-      }
-      annotation[propertyName] = prop;
-    }, [annotation, prop]);
-  });
+  useAnnotationProperties(annotation, properties);
 
   const handlerWithoutParameters = () => {};
 
@@ -173,10 +114,6 @@ const Annotation: React.FC<AnnotationProps> = ({
     { name: "deselect", handler: onDeselect },
     { name: "drag-start", handler: onDragStart },
   ] as const;
-
-  events.forEach(({ name, handler }) => {
-    forwardMapkitEvent(annotation, name, handler, handlerWithoutParameters);
-  });
 
   const dragEndParameters = () => ({
     latitude: annotation!.coordinate.latitude,

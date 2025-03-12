@@ -1,4 +1,4 @@
+import { createContext } from "react";
 
-import React from 'react';
 
-export default React.createContext<mapkit.Map | null>(null);
+export default createContext<mapkit.Map | null>(null);
