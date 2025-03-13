@@ -1,7 +1,7 @@
 {
   "name": "react-apple-mapkit",
-  "version": "1.2.7",
-  "description": "A React wrapper for Apple MapKit JS.",
+  "version": "1.2.8",
+  "description": "A lightweight React wrapper for Apple MapKit JS with an easy-to-use API.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

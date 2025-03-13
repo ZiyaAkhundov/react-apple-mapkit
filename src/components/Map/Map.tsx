@@ -81,23 +81,23 @@ const Map = React.forwardRef<
   ) => {
     const [map, setMap] = useState<mapkit.Map | null>(null);
     const element = useRef<HTMLDivElement>(null);
-    const exists = useRef<boolean>(false);
+    const isMapKitExists = useRef<boolean>(false);
 
     useEffect(() => {
       const loadMap = typeof customLoad === "function" ? customLoad : mapLoader;
       loadMap(token).then(() => {
-        if (exists.current) return;
+        if (isMapKitExists.current) return;
         const options = initialRegion
           ? { region: toMapCoordinateRegion(initialRegion) }
           : {};
-        setMap(new mapkit.Map(element.current!, options));
-        exists.current = true;
+        setMap(new mapkit.Map(element.current, options));
+        isMapKitExists.current = true;
       });
 
       return () => {
         if (map) {
           map.destroy();
-          exists.current = false;
+          isMapKitExists.current = false;
         }
       };
     }, []);
